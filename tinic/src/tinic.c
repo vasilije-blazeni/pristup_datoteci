@@ -12,6 +12,6 @@
 #include <stdlib.h>
 
 int main(void) {
-	puts(""); /* prints  */
+	puts("tinic\n"); /* prints  */
 	return EXIT_SUCCESS;
 }
