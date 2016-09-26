@@ -17,6 +17,7 @@ typedef struct
 
 #define INIC_KOD_OPIS_GR Kod_opis_gr	kod_opis_gr = { EOK, "" };
 
+#if 0
 /* VAZNE NAPOMENE:
  * - Pri koriscenju donjih makro-definicije voditi racuna da
  * duzina rezultujuceg stringa opisa greske ne dovede do prekoracenja
@@ -44,6 +45,7 @@ typedef struct
 	{ \
 		kod_opis_gr.kod = KOD_GR; \
 		struct timeval	vreme_s_us;	\
+		gettimeofday( &vreme_s_us, NULL );	\
 		strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T", localtime(	\
 			&vreme_s_us.tv_sec ) );	\
 		sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),	\
@@ -51,8 +53,37 @@ typedef struct
 			#USLOV,	vreme_s_us.tv_usec / 1000, __FILE__, __func__, __LINE__ ); \
 		NAREDBE \
 	}
+#endif
 
+/* VAZNE NAPOMENE:
+ * - Pri koriscenju donjeg funkcijskog makroa voditi racuna da duzina rezultujuceg stringa
+ * opisa greske ne dovede do prekoracenja komponente strukture opis[ 500 ].
+ * - Ako se sistemska greska ne pojavljuje u 'errno', vec u povratnoj vrednosti
+ * bibliotecke funkcije, donji funkcijski makro se moze koristiti tako sto se
+ * kao parametar USLOV stavi if( ( errno = funkcija() ) != EOK ). */
 
+#define USLOV_ZA_GR_KOD_I_OPIS_GR_I_NAREDBE(USLOV_ZA_GR, KOD_GR, OPIS_GR, NAREDBE) \
+	USLOV_ZA_GR \
+	{ \
+		kod_opis_gr.kod = KOD_GR; \
+		struct timeval	vreme_s_us;	\
+		gettimeofday( &vreme_s_us, NULL );	\
+		strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T", localtime(	\
+			&vreme_s_us.tv_sec ) );	\
+		sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),	\
+			".%03ld  GRESKA %d (%s): %s, %s(), linija %d, "	\
+			#USLOV_ZA_GR, vreme_s_us.tv_usec / 1000, kod_opis_gr.kod,	\
+			strerror( KOD_GR ), __FILE__, __func__, __LINE__ ); \
+		NAREDBE \
+	}
+/* Za sistemsku gresku se poziva ovako:
+ * USLOV_ZA_GR_KOD_I_OPIS_GR_I_NAREDBE
+ * (
+ *		USLOV_ZA_GR,
+ *		errno, strerror( errno ),
+ *		NAREDBE
+ * );
+ * */
 typedef enum
 {	/* VAZNA NAPOMENA: indeksi taskova moraju biti uskladjeni sa nizom
 	 * ime_taska[] u fajlu "imena_taskova.c"; takodje, zbog jednostavnijeg
