@@ -15,7 +15,7 @@ typedef struct
 	char	opis[ 500 ];
 }	Kod_opis_gr;
 
-#define INIC_KOD_OPIS_GR Kod_opis_gr	kod_opis_gr = { EOK, "" };
+#define INIC_KOD_OPIS_GR Kod_opis_gr	kod_opis_gr = { EOK, "GRESKA 0 (Nema greske)\n" };
 
 #if 0
 /* VAZNE NAPOMENE:
@@ -34,7 +34,7 @@ typedef struct
 		strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T", localtime(	\
 			&vreme_s_us.tv_sec ) );	\
 		sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),	\
-			".%03ld  GRESKA %d (%s): %s, %s(), linija %d, " #USLOV,	\
+			".%03ld  GRESKA %d (%s): %s, %s(), linija %d: " #USLOV,	\
 			vreme_s_us.tv_usec / 1000, kod_opis_gr.kod,	\
 			strerror( kod_opis_gr.kod ), __FILE__, __func__, __LINE__ ); \
 		NAREDBE \
@@ -49,7 +49,7 @@ typedef struct
 		strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T", localtime(	\
 			&vreme_s_us.tv_sec ) );	\
 		sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),	\
-			".%03ld  GRESKA " KOD_GR " (" OPIS_GR "): %s, %s(), linija %d, "	\
+			".%03ld  GRESKA " KOD_GR " (" OPIS_GR "): %s, %s(), linija %d: "	\
 			#USLOV,	vreme_s_us.tv_usec / 1000, __FILE__, __func__, __LINE__ ); \
 		NAREDBE \
 	}
@@ -62,21 +62,22 @@ typedef struct
  * bibliotecke funkcije, donji funkcijski makro se moze koristiti tako sto se
  * kao parametar USLOV stavi if( ( errno = funkcija() ) != EOK ). */
 
-#define \
-USLOV_ZA_GR_KOD_I_OPIS_GR_I_NAREDBE(USLOV_ZA_GR, KOD_GR, OPIS_GR, NAREDBE) \
-	USLOV_ZA_GR \
-{ \
-	kod_opis_gr.kod = KOD_GR; \
-	struct timeval	vreme_s_us;	\
-	gettimeofday( &vreme_s_us, NULL );	\
-	strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T", localtime(	\
-		&vreme_s_us.tv_sec ) );	\
-	sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),	\
-		".%03ld  GRESKA %d (%s): %s, %s(), linija %d, "	\
-		#USLOV_ZA_GR, vreme_s_us.tv_usec / 1000, kod_opis_gr.kod,	\
-		strerror( KOD_GR ), __FILE__, __func__, __LINE__ ); \
-	NAREDBE \
-}
+#define																			\
+USLOV_ZA_GR_KOD_I_OPIS_GR_I_NAREDBE(USLOV_ZA_GR, KOD_GR, OPIS_GR, NAREDBE)		\
+	USLOV_ZA_GR																	\
+{																				\
+	struct timeval	vreme_s_us;													\
+																				\
+																				\
+	gettimeofday( &vreme_s_us, NULL );											\
+	strftime( kod_opis_gr.opis, sizeof( "00:00:00" ), "%T",						\
+	localtime( &vreme_s_us.tv_sec ) );											\
+	sprintf( kod_opis_gr.opis + strlen( kod_opis_gr.opis ),						\
+		".%03ld  GRESKA %d (%s): %s, %s(), linija %d: "	#USLOV_ZA_GR "\n",		\
+		vreme_s_us.tv_usec / 1000, kod_opis_gr.kod = KOD_GR, OPIS_GR,			\
+	__FILE__, __func__, __LINE__ );												\
+	NAREDBE																		\
+}																				\
 /* Za sistemsku gresku se poziva ovako:
  * USLOV_ZA_GR_KOD_I_OPIS_GR_I_NAREDBE
  * (
